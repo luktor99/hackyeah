@@ -39,9 +39,10 @@ class Database:
         return json.dumps(results, ensure_ascii=False)
 
 
+db = Database()
+
 if __name__ == '__main__':
     # Drop and create database
-    db = Database()
     db.connect()
     db.drop()
     db.create()
