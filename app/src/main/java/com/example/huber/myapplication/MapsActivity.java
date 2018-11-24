@@ -51,6 +51,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
+        Log.d("GoogleApiClient", "Creating Google Api Client.");
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addApi(LocationServices.API)
                 .addConnectionCallbacks(this)
@@ -86,6 +87,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onStop() {
         super.onStop();
 
+        Log.d("GoogleApiClient", "Stopping Google Api Client.");
         LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
 
         mGoogleApiClient.disconnect();
@@ -199,6 +201,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void retryConnecting() {
         if (!mGoogleApiClient.isConnecting()) {
+            Log.d("GoogleApiClient", "Retrying connection.");
               mGoogleApiClient.connect();
         }
     }

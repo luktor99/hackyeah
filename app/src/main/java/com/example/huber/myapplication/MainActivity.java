@@ -13,6 +13,7 @@ public class MainActivity extends AppCompatActivity {
 
     private TextView startLabel;
     private Button startButton;
+    private RESTClient client;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,11 +31,15 @@ public class MainActivity extends AppCompatActivity {
 
         startLabel = (TextView)findViewById(R.id.startLabel);
         startButton = (Button) findViewById(R.id.startButton);
+        client = new RESTClient();
 
         startButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
+//                String name = client.getData();
+//
+//                System.out.print(name);
                 Intent intent = new Intent(getApplicationContext(), MapsActivity.class);
 
                 startActivity(intent);
