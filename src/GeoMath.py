@@ -6,3 +6,7 @@ class GeoMath:
     def get_entry_point(self):
         return {'lat': self.lat,
                 'lng': self.lng}
+
+    def get_lottery_ticket(self):
+        return {'lat': self.lat,
+                'lng': self.lng}

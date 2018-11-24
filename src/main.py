@@ -4,7 +4,7 @@ from flask import Flask
 from flask_cors import CORS
 from flask_restful import Api
 
-from src import Test, PathEntryPoint
+from src import Test, PathEntryPoint, LotteryTicket
 from src.database import db
 
 app = Flask(__name__)
@@ -24,6 +24,7 @@ def hello_world():
 
 api.add_resource(Test.Test, '/api/test')
 api.add_resource(PathEntryPoint.PathEntryPoint, '/api/entry_point')
+api.add_resource(LotteryTicket.LotteryTicket, '/api/lottery_ticket')
 
 # class Prediction(Resource):
 #     def get(self, departure_time, is_workday, id_start, id_end):
