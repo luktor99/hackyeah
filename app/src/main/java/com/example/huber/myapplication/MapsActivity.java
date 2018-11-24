@@ -1,9 +1,7 @@
 package com.example.huber.myapplication;
 
 import android.Manifest;
-import android.content.Context;
 import android.content.pm.PackageManager;
-import android.location.LocationManager;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.os.Bundle;
@@ -12,6 +10,8 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -23,9 +23,10 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.Marker;
 import com.example.huber.myapplication.PermissionUtils;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback,
@@ -35,6 +36,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private GoogleMap mMap;
     private Location mLastLocation;
     private GoogleApiClient mGoogleApiClient;
+    private Circle mMapCircle;
     LocationRequest mLocationRequest;
 
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1234;
@@ -45,7 +47,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        this.requestWindowFeature(Window.FEATURE_NO_TITLE);
+
+        //Remove notification bar
+        this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
+        //set content view AFTER ABOVE sequence (to avoid crash)
         setContentView(R.layout.activity_maps);
+
+        //Set circle properties:
+
+
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -98,7 +110,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (mLastLocation != null) {
             Log.i("Location", mLastLocation.toString());
         } else {
-            Log.i("Location", "nothing");
+            Log.i("Location", "No known last location");
         }
 
     }
@@ -172,7 +184,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-
+//    //Calling REST API:
+//    public void onPointRequestGet(){
+//        Log.d("RESTApi","Got random point nearby!");
+//        if(mMapCircle != null){
+//            mMapCircle.remove();
+//        }
+//        CircleOptions circleOptions = new CircleOptions();
+//        circleOptions.center(new LatLng(mlocation.getLatitude(),location.getLongitude()));
+//        circleOptions.radius(700);
+//        circleOptions.fillColor(Color.TRANSPARENT);
+//        circleOptions.strokeWidth(6);
+//        mapCircle = mapView.addCircle(circleOption);
+//    }
 
     //Utility functions:
 
