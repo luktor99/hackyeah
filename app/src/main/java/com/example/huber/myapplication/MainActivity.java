@@ -9,6 +9,13 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+
+import org.json.JSONObject;
+
 public class MainActivity extends AppCompatActivity {
 
     private TextView startLabel;
@@ -18,16 +25,11 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //setContentView(R.layout.activity_main);
 
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
-
-//Remove notification bar
         this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-
-//set content view AFTER ABOVE sequence (to avoid crash)
         this.setContentView(R.layout.activity_main);
-
+        
 
         startLabel = (TextView)findViewById(R.id.startLabel);
         startButton = (Button) findViewById(R.id.startButton);
