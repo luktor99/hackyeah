@@ -55,9 +55,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         //set content view AFTER ABOVE sequence (to avoid crash)
         setContentView(R.layout.activity_maps);
 
-        //Set circle properties:
-
-
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
