@@ -1,7 +1,8 @@
-
 class GeoMath:
-    def __init__(self):
-        pass
+    def __init__(self, lat, lng):
+        self.lat = lat
+        self.lng = lng
 
-    def get_crossroads(self):
-        return 0, 0
+    def get_entry_point(self):
+        return {'lat': self.lat,
+                'lng': self.lng}
