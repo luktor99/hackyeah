@@ -1,17 +1,27 @@
 package com.example.huber.myapplication;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.pm.PackageManager;
+import android.location.LocationManager;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.os.Bundle;
 import android.location.Location;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.view.View;
+import android.widget.Toast;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -19,17 +29,19 @@ import com.google.android.gms.maps.model.Marker;
 import com.example.huber.myapplication.PermissionUtils;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback,
-        ActivityCompat.OnRequestPermissionsResultCallback {
+        ActivityCompat.OnRequestPermissionsResultCallback, LocationListener,
+        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private GoogleMap mMap;
     private Location mLastLocation;
-    private Marker mCurrLocationMarker;
- //   FusedLocationProviderClient mFusedLocationClient;
+    private GoogleApiClient mGoogleApiClient;
+    LocationRequest mLocationRequest;
 
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1234;
 
     private Boolean mLocationPermissionGranted = false;
 
+    // Google map callbacks overrides:
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -39,40 +51,97 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-//        mMap.setOnMyLocationChangeListener(new GoogleMap.OnMyLocationChangeListener() {
-//
-//            @Override
-//            public void onMyLocationChange(Location arg0) {
-//                // TODO Auto-generated method stub
-//
-//                mMap.addMarker(new MarkerOptions().position(new LatLng(arg0.getLatitude(), arg0.getLongitude())).title("It's Me!"));
-//            }
-//        });
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addApi(LocationServices.API)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .build();
 
+        mLocationRequest = new LocationRequest();
+        Log.d("Location Services", "Creating map interface and location listener.");
+        mLocationRequest.setInterval(30*1000);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+
+        mLocationRequest.setFastestInterval(3*1000);
     }
 
-    /**
-     * Manipulates the map once available.
-     * This callback is triggered when the map is ready to be used.
-     * This is where we can add markers or lines, add listeners or move the camera. In this case,
-     * we just add a marker near my position.
-     * If Google Play services is not installed on the device, the user will be prompted to install
-     * it inside the SupportMapFragment. This method will only be triggered once the user has
-     * installed Google Play services and returned to the app.
-     */
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
         enableMyLocation();
-        Location myLocation = googleMap.getMyLocation();  //Nullpointer exception.........
-        // Add a marker in Sydney and move the camera
-        LatLng myPosition = new LatLng(myLocation.getLatitude(),
-                myLocation.getLongitude());
 
-        mMap.addMarker(new MarkerOptions().position(myPosition).title("Marker in my location"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(myPosition));
+        Log.d("GoogleMap", "Map is ready.");
     }
+
+    //Google API Client callbacks overrides:
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mGoogleApiClient.connect();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
+
+        mGoogleApiClient.disconnect();
+    }
+
+    public void onClick(View view) {
+
+        if (mLastLocation != null) {
+            Log.i("Location", mLastLocation.toString());
+        } else {
+            Log.i("Location", "nothing");
+        }
+
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        Log.d("LocationService", "CHANGED");
+        mLastLocation = location;
+
+        Location myLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        // Add a marker in my location and move the camera
+        LatLng myPosition = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
+
+        Log.d("GoogleMap", "Moving camera to my location.");
+        mMap.addMarker(new MarkerOptions().position(myPosition).title("YOU"));
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(myPosition));
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myPosition, 14), 1500, null);
+
+        Toast.makeText(this, mLastLocation.getLatitude() +", "+ mLastLocation.getLatitude(), Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+        // Display the connection status
+        Toast.makeText(this, "Connected", Toast.LENGTH_SHORT).show();
+        Log.d("GoogleApiClient", "GoogleApiClient connected, setting location updates");
+
+        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        Toast.makeText(this, "Disconnected. Please re-connect.",
+                Toast.LENGTH_SHORT).show();
+        Log.i("GoogleApiClient", "GoogleApiClient connection suspended");
+        retryConnecting();
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult result){
+        Log.i("GoogleApiClient", "GoogleApiClient connection failed: " + result.toString());
+        retryConnecting();
+    }
+
+    // Device map permissions overrides:
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
@@ -101,6 +170,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
+
+
     //Utility functions:
 
     /**
@@ -124,5 +195,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void showMissingPermissionError() {
         PermissionUtils.PermissionDeniedDialog
                 .newInstance(true).show(getSupportFragmentManager(), "dialog");
+    }
+
+    private void retryConnecting() {
+        if (!mGoogleApiClient.isConnecting()) {
+              mGoogleApiClient.connect();
+        }
     }
 }
