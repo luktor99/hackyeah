@@ -2,6 +2,7 @@ package com.example.huber.myapplication;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.os.Bundle;
@@ -14,6 +15,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Toast;
 
+import com.android.volley.VolleyError;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
@@ -29,19 +31,27 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.example.huber.myapplication.PermissionUtils;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback,
         ActivityCompat.OnRequestPermissionsResultCallback, LocationListener,
-        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
+        RESTCallback {
 
     private GoogleMap mMap;
     private Location mLastLocation;
     private GoogleApiClient mGoogleApiClient;
     private Circle mMapCircle;
+    private RESTClient mRestClient;
     LocationRequest mLocationRequest;
 
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1234;
 
     private Boolean mLocationPermissionGranted = false;
+
+    private Boolean mInitializedState = false;
 
     // Google map callbacks overrides:
     @Override
@@ -73,6 +83,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
         mLocationRequest.setFastestInterval(3*1000);
+
+        Log.d("RESTApi", "Sending request for random point.");
+
+        mRestClient = new RESTClient(this);
     }
 
     @Override
@@ -117,14 +131,27 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         Log.d("LocationService", "CHANGED");
         mLastLocation = location;
 
-        Location myLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+//        Location myLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         // Add a marker in my location and move the camera
-        LatLng myPosition = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
+        LatLng myPosition = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
+
+        if(!mInitializedState) {
+            JSONObject jsonObj = new JSONObject();
+            try {
+                jsonObj.put("User", "User1");
+                jsonObj.put("lat", myPosition.latitude);
+                jsonObj.put("lng", myPosition.longitude);
+                String api = "/api/entry_point";
+                mRestClient.sendPOST(jsonObj, api, this);
+            }catch(JSONException exception){
+                Log.e("RESTApi", "Could not send request! JSONException occured!");
+            }
 
         Log.d("GoogleMap", "Moving camera to my location.");
         mMap.addMarker(new MarkerOptions().position(myPosition).title("YOU"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(myPosition));
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myPosition, 14), 1500, null);
+        }
 
         Toast.makeText(this, mLastLocation.getLatitude() +", "+ mLastLocation.getLatitude(), Toast.LENGTH_SHORT).show();
     }
@@ -181,19 +208,38 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-//    //Calling REST API:
-//    public void onPointRequestGet(){
-//        Log.d("RESTApi","Got random point nearby!");
-//        if(mMapCircle != null){
-//            mMapCircle.remove();
-//        }
-//        CircleOptions circleOptions = new CircleOptions();
-//        circleOptions.center(new LatLng(mlocation.getLatitude(),location.getLongitude()));
-//        circleOptions.radius(700);
-//        circleOptions.fillColor(Color.TRANSPARENT);
-//        circleOptions.strokeWidth(6);
-//        mapCircle = mapView.addCircle(circleOption);
-//    }
+    // REST Api implementation callbacks:
+
+    @Override
+    public void postResponse(JSONObject response) {
+        System.out.print(response);
+        Log.d("RESTApi", "Got random position from server.");
+        if(mMapCircle != null){
+            mMapCircle.remove();
+        }
+        double latitude = 0;
+        double longtitude = 0;
+        try {
+            latitude = response.getDouble("lat");
+            longtitude = response.getDouble("lng");
+        }catch(JSONException exception){
+            Log.e("RESTApi", "Could not send request! JSONException occured!");
+            return;
+        }
+        CircleOptions circleOptions = new CircleOptions();
+        circleOptions.center(new LatLng(latitude, longtitude));
+        circleOptions.radius(700);
+        circleOptions.fillColor(Color.TRANSPARENT);
+        circleOptions.strokeWidth(6);
+        mMapCircle = mMap.addCircle(circleOptions);
+        mInitializedState = true;
+    }
+
+    @Override
+    public void postError(VolleyError error) {
+        Log.d("RESTApi", "Could not receive random position from server!");
+        mInitializedState = false;
+    }
 
     //Utility functions:
 
@@ -226,4 +272,5 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
               mGoogleApiClient.connect();
         }
     }
+
 }
