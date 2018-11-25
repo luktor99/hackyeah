@@ -22,13 +22,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class RESTClient {
-    private final static String mainEndpoint = "http://search.twitter.com/search.json?q=jQuery&result_type=recent&rpp=3";
+    private final static String mainEndpoint = "http://10.250.193.123:80";
 
     private RequestQueue mRequestQueue;
 
     private Context mContext;
 
     RESTClient(Context context) {
+        NukeSSLCerts.nuke();
         // Instantiate the cache
         mContext = context;
         Cache cache = new DiskBasedCache(mContext.getCacheDir(), 1024 * 1024); // 1MB cap
