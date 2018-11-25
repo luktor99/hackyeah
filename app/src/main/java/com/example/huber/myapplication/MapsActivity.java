@@ -31,8 +31,11 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.example.huber.myapplication.PermissionUtils;
 
+import org.javatuples.Triplet;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.Vector;
 
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback,
@@ -43,8 +46,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private GoogleMap mMap;
     private Location mLastLocation;
     private GoogleApiClient mGoogleApiClient;
-    private Circle mMapCircle;
+    private Vector<Circle> mMapCircle;
     private RESTClient mRestClient;
+    private Vector<Triplet<Double, Double, Double>> interestPoints;
     LocationRequest mLocationRequest;
 
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1234;
@@ -87,6 +91,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         Log.d("RESTApi", "Sending request for random point.");
 
         mRestClient = new RESTClient(this);
+        interestPoints.add(new Triplet<Double,Double,Double>(52.2883235, 21.0186957, 400.0));
+        interestPoints.add(new Triplet<Double, Double, Double>(52.2494261, 20.9936908, 300.0));
+        interestPoints.add(new Triplet<Double, Double, Double>(52.2417624, 21.0050243, 150.0));
     }
 
     @Override
@@ -136,22 +143,30 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         LatLng myPosition = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
 
         if(!mInitializedState) {
-            JSONObject jsonObj = new JSONObject();
-            try {
-                jsonObj.put("User", "User1");
-                jsonObj.put("lat", myPosition.latitude);
-                jsonObj.put("lng", myPosition.longitude);
-                String api = "/api/entry_point";
-                mRestClient.sendPOST(jsonObj, api, this);
-            }catch(JSONException exception){
-                Log.e("RESTApi", "Could not send request! JSONException occured!");
+//            JSONObject jsonObj = new JSONObject();
+//            try {
+//                jsonObj.put("User", "User1");
+//                jsonObj.put("lat", myPosition.latitude);
+//                jsonObj.put("lng", myPosition.longitude);
+//                String api = "/api/entry_point";
+//                mRestClient.sendPOST(jsonObj, api, this);
+//            }catch(JSONException exception){
+//                Log.e("RESTApi", "Could not send request! JSONException occured!");
+            for (Triplet<Double,Double,Double> point:interestPoints) {
+                CircleOptions circleOptions = new CircleOptions();
+                circleOptions.center(new LatLng(point.getValue0(), point.getValue1()));
+                circleOptions.radius(point.getValue2());
+                circleOptions.fillColor(Color.TRANSPARENT);
+                circleOptions.strokeWidth(6);
+                mMapCircle.add(mMap.addCircle(circleOptions));
+                mInitializedState = true;
             }
+        }
 
         Log.d("GoogleMap", "Moving camera to my location.");
         mMap.addMarker(new MarkerOptions().position(myPosition).title("YOU"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(myPosition));
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myPosition, 14), 1500, null);
-        }
 
         Toast.makeText(this, mLastLocation.getLatitude() +", "+ mLastLocation.getLatitude(), Toast.LENGTH_SHORT).show();
     }
@@ -215,7 +230,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         System.out.print(response);
         Log.d("RESTApi", "Got random position from server.");
         if(mMapCircle != null){
-            mMapCircle.remove();
+            for(Circle circle:mMapCircle){
+                circle.remove();
+            }
+            mMapCircle.clear();
         }
         double latitude = 0;
         double longtitude = 0;
@@ -231,7 +249,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         circleOptions.radius(700);
         circleOptions.fillColor(Color.TRANSPARENT);
         circleOptions.strokeWidth(6);
-        mMapCircle = mMap.addCircle(circleOptions);
+//        mMapCircle = mMap.addCircle(circleOptions);
         mInitializedState = true;
     }
 
