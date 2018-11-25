@@ -10,9 +10,11 @@ import android.location.Location;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.android.volley.VolleyError;
@@ -91,14 +93,32 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         Log.d("RESTApi", "Sending request for random point.");
 
         mRestClient = new RESTClient(this);
-        interestPoints.add(new Triplet<Double,Double,Double>(52.2883235, 21.0186957, 400.0));
-        interestPoints.add(new Triplet<Double, Double, Double>(52.2494261, 20.9936908, 300.0));
-        interestPoints.add(new Triplet<Double, Double, Double>(52.2417624, 21.0050243, 150.0));
+        mMapCircle = new Vector<>();
+        interestPoints = new Vector<>();
+        interestPoints.add(new Triplet<>(52.2883235, 21.0186957, 400.0));
+        interestPoints.add(new Triplet<>(52.2494261, 20.9936908, 300.0));
+        interestPoints.add(new Triplet<>(52.2417624, 21.0050243, 150.0));
     }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+
+        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+
+            @Override
+            public void onMapClick(LatLng arg0) {
+                if (mLastLocation != null) {
+                    Log.i("Location", mLastLocation.toString());
+                } else {
+                    Log.i("Location", "No known last location");
+                }
+                LatLng myPosition = new LatLng(interestPoints.get(0).getValue0(), interestPoints.get(0).getValue1());
+                mMap.addMarker(new MarkerOptions().position(myPosition).title("YOU"));
+                mMap.moveCamera(CameraUpdateFactory.newLatLng(myPosition));
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myPosition, 14), 15000, null);
+            }
+        });
 
         enableMyLocation();
 
@@ -121,16 +141,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
 
         mGoogleApiClient.disconnect();
-    }
-
-    public void onClick(View view) {
-
-        if (mLastLocation != null) {
-            Log.i("Location", mLastLocation.toString());
-        } else {
-            Log.i("Location", "No known last location");
-        }
-
     }
 
     @Override
@@ -156,17 +166,18 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 CircleOptions circleOptions = new CircleOptions();
                 circleOptions.center(new LatLng(point.getValue0(), point.getValue1()));
                 circleOptions.radius(point.getValue2());
-                circleOptions.fillColor(Color.TRANSPARENT);
+                circleOptions.fillColor(Color.BLUE);
                 circleOptions.strokeWidth(6);
+                circleOptions.strokeColor(Color.BLACK);
                 mMapCircle.add(mMap.addCircle(circleOptions));
-                mInitializedState = true;
             }
+            Log.d("GoogleMap", "Moving camera to my location." + myPosition.toString());
+            mMap.addMarker(new MarkerOptions().position(myPosition).title("YOU"));
+            mMap.moveCamera(CameraUpdateFactory.newLatLng(myPosition));
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myPosition, 14), 30000, null);
+            mInitializedState = true;
         }
 
-        Log.d("GoogleMap", "Moving camera to my location.");
-        mMap.addMarker(new MarkerOptions().position(myPosition).title("YOU"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(myPosition));
-        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myPosition, 14), 1500, null);
 
         Toast.makeText(this, mLastLocation.getLatitude() +", "+ mLastLocation.getLatitude(), Toast.LENGTH_SHORT).show();
     }
