@@ -237,7 +237,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void postError(VolleyError error) {
-        Log.d("RESTApi", "Could not receive random position from server!");
+        Log.d("RESTApi", "Could not receive random position from server!\n" + error.toString());
         mInitializedState = false;
     }
 
