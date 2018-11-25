@@ -12,19 +12,21 @@ public class DirectionArrowController : MonoBehaviour {
 
 	long vibration_time_ms = 500;
 
-	AndroidJavaClass unity= new AndroidJavaClass("com.unity3d.player.UnityPlayer");
-	AndroidJavaObject ca = unity.GetStatic("currentActivity");
-	AndroidJavaClass vibratorClass = new AndroidJavaClass("android.os.Vibrator");
-	AndroidJavaObject vibratorService = ca.Call("getSystemService",ca.GetStatic("VIBRATOR_SERVICE"));
+
+	AndroidJavaObject vibrator;
+
+
+
 	// Use this for initialization
 	void Start () {
-
-	
+		AndroidJavaClass jc = new AndroidJavaClass ("com.hackyeah.lotto_app.UnityPlayer");
+		AndroidJavaObject ac = jc.GetStatic<AndroidJavaObject> ("currentActivity");// Get the Current Activity from the Unity Player.
+		vibrator = ac.Call<AndroidJavaObject>("getSystemService", "vibrator");// Then get the Vibration Service from the Current Activity.
 	}
 	
 	// Update is called once per frame
 	void Update () {
-		vibratorService.Call("vibrate", 	vibration_time_ms);
+		vibrator.Call ("vibrate", vibration_time_ms);
 	}
 
 
