@@ -10,11 +10,8 @@ import android.location.Location;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.MotionEvent;
-import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.android.volley.VolleyError;
@@ -31,6 +28,7 @@ import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Marker;
 import com.example.huber.myapplication.PermissionUtils;
 
 import org.javatuples.Triplet;
@@ -48,6 +46,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private GoogleMap mMap;
     private Location mLastLocation;
     private GoogleApiClient mGoogleApiClient;
+    private Marker mMarker;
     private Vector<Circle> mMapCircle;
     private RESTClient mRestClient;
     private Vector<Triplet<Double, Double, Double>> interestPoints;
@@ -114,9 +113,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     Log.i("Location", "No known last location");
                 }
                 LatLng myPosition = new LatLng(interestPoints.get(0).getValue0(), interestPoints.get(0).getValue1());
-                mMap.addMarker(new MarkerOptions().position(myPosition).title("YOU"));
+                if(mMarker != null){
+                    mMarker.remove();
+                }
+                mMarker = mMap.addMarker(new MarkerOptions().position(myPosition).title("YOU"));
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(myPosition));
-                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myPosition, 14), 15000, null);
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myPosition, 14), 1500, null);
             }
         });
 
@@ -172,9 +174,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 mMapCircle.add(mMap.addCircle(circleOptions));
             }
             Log.d("GoogleMap", "Moving camera to my location." + myPosition.toString());
-            mMap.addMarker(new MarkerOptions().position(myPosition).title("YOU"));
+            if(mMarker != null){
+                mMarker.remove();
+            }
+            mMarker = mMap.addMarker(new MarkerOptions().position(myPosition).title("YOU"));
             mMap.moveCamera(CameraUpdateFactory.newLatLng(myPosition));
-            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myPosition, 14), 30000, null);
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myPosition, 12), 1500, null);
             mInitializedState = true;
         }
 
