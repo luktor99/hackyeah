@@ -41,7 +41,7 @@ import java.util.Vector;
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback,
         ActivityCompat.OnRequestPermissionsResultCallback, LocationListener,
         GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
-        RESTCallback {
+        RESTCallback, GoogleMap.OnMarkerClickListener {
 
     private GoogleMap mMap;
     private Location mLastLocation;
@@ -121,6 +121,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myPosition, 14), 1500, null);
             }
         });
+
+        mMap.setOnMarkerClickListener(this);
 
         enableMyLocation();
 
@@ -273,6 +275,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void postError(VolleyError error) {
         Log.d("RESTApi", "Could not receive random position from server!\n" + error.toString());
         mInitializedState = false;
+    }
+
+    @Override
+    public boolean onMarkerClick(final Marker marker) {
+
+        if (marker.equals(mMarker))
+        {
+            Log.d("LocationService", "Running Unity App.");
+            //TODO: Change to unity
+        }
+        return true;
     }
 
     //Utility functions:
