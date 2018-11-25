@@ -22,7 +22,7 @@ public class StateController : MonoBehaviour {
 
 	public void triggerChests() {
 		foreach (var chest in chests) {
-			chest.GetComponentInChildren<ChestAnimationController> ().triggerAnimators (0);
+			chest.gameObject.SetActive (true);
 		}
 	}
 
