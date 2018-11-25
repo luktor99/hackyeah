@@ -4,27 +4,76 @@ using UnityEngine;
 
 public class DirectionArrowController : MonoBehaviour {
 
-	float game_point_langtitude = 50.0f;
-	float game_point_longtitude = 50.0f;
 
-	float device_langtitude;
-	float device_longtitude;
+#if UNITY_ANDROID && !UNITY_EDITOR
+    public static AndroidJavaClass unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
+    public static AndroidJavaObject currentActivity = unityPlayer.GetStatic<AndroidJavaObject>("currentActivity");
+    public static AndroidJavaObject vibrator = currentActivity.Call<AndroidJavaObject>("getSystemService", "vibrator");
+#else
+    public static AndroidJavaClass unityPlayer;
+    public static AndroidJavaObject currentActivity;
+    public static AndroidJavaObject vibrator;
+#endif
 
-	long vibration_time_ms = 500;
+    public static void Vibrate()
+    {
+        if (isAndroid())
+            vibrator.Call("vibrate");
+        else
+            Handheld.Vibrate();
+    }
 
-	AndroidJavaClass unity= new AndroidJavaClass("com.unity3d.player.UnityPlayer");
-	AndroidJavaObject ca = unity.GetStatic("currentActivity");
-	AndroidJavaClass vibratorClass = new AndroidJavaClass("android.os.Vibrator");
-	AndroidJavaObject vibratorService = ca.Call("getSystemService",ca.GetStatic("VIBRATOR_SERVICE"));
-	// Use this for initialization
+
+    public static void Vibrate(long milliseconds)
+    {
+        if (isAndroid())
+            vibrator.Call("vibrate", milliseconds);
+        else
+            Handheld.Vibrate();
+    }
+
+    public static void Vibrate(long[] pattern, int repeat)
+    {
+        if (isAndroid())
+            vibrator.Call("vibrate", pattern, repeat);
+        else
+            Handheld.Vibrate();
+    }
+
+    public static bool HasVibrator()
+    {
+        return isAndroid();
+    }
+
+    public static void Cancel()
+    {
+        if (isAndroid())
+            vibrator.Call("cancel");
+    }
+
+    private static bool isAndroid()
+    {
+#if UNITY_ANDROID && !UNITY_EDITOR
+	return true;
+#else
+        return false;
+#endif
+    }
+
+    long vibration_time_ms = 1000;
+    
 	void Start () {
+	    if (HasVibrator())
+	    {
+	        Vibrate(vibration_time_ms);
 
-	
-	}
+	    }
+
+    }
 	
 	// Update is called once per frame
 	void Update () {
-		vibratorService.Call("vibrate", 	vibration_time_ms);
+	    
 	}
 
 
